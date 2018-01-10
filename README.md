@@ -9,40 +9,42 @@
 **5)** Создать файл **c:\JettyRunWar\build.gradle** со следующим содержимым:
 
 ```groovy
-apply plugin: 'jetty'
-
 def fileWar = file("$rootDir").listFiles().find { it.name.endsWith('.war') }
 
-if(fileWar&&fileWar.exists()) {
+if (fileWar && fileWar.exists()) {
 
-task replaceWar(type:Copy){
-	from fileWar
-	into war.destinationDir
-	rename (fileWar.name,war.archiveName)
+    apply plugin: 'war'
+    apply from: 'https://raw.github.com/akhikhl/gretty/master/pluginScripts/gretty.plugin'
+
+
+    task replaceWar(type: Copy) {
+        from fileWar
+        into war.destinationDir
+        rename(fileWar.name, war.archiveName)
+    }
+
+    war {
+        dependsOn clean
+        doLast {
+            replaceWar.execute()
+        }
+    }
+
+    gretty {
+        contextPath 'webApp'
+        /*
+        //Если для запуска сервера требуются артефакты положите их в каталог libs
+        additionalRuntimeJars = fileTree("$rootDir/libs").include('.jar')
+        */
+
+        /*
+//Порт для запуска HttpListener'a можно уточнить
+httpPort=8081
+*/
+    }
+
+    defaultTasks 'jettyRunWar'
 }
-
-war {
-	dependsOn clean
-	doLast{
-		replaceWar.execute()
-	}
-}
-
-
-jettyRunWar {
-	contextPath 'webApp'
-	/*
-	//Если для запуска сервера требуются артефакты положите их в каталог libs
-	additionalRuntimeJars = fileTree("$rootDir/libs").include('.jar')
-	*/
-	
-			/*
-	//Порт для запуска HttpListener'a можно уточнить
-	httpPort=8081
-	*/
-}
-
-defaultTasks 'jettyRunWar'
 ```
 **6)** Выполнить в консоли **"cd c:\JettyRunWar && gradle wrapper"** (*в каталоге c:\JettyRunWar должны появится gradle,gradlew*)
 
